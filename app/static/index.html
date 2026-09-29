@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Marketplace - Multi-Agent Orchestrator</title>
+    <!-- Google Fonts & Marked.js for Markdown parsing -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151c2c;
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --primary-hover: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --success-color: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.12);
+            --danger-color: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.12);
+            --accent-glow: rgba(99, 102, 241, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2.5rem 1.5rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 960px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #818cf8;
+            padding: 0.35rem 0.9rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            margin-bottom: 2rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #e2e8f0;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 1rem;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.2s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .btn-submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--primary-gradient);
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-banner {
+            display: none;
+            background: var(--danger-bg);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 1rem 1.25rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        #results-container {
+            display: none;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #f8fafc;
+        }
+
+        .status-pill {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-completed {
+            background: var(--success-bg);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-failed {
+            background: var(--danger-bg);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .team-card {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .agent-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .agent-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #e2e8f0;
+        }
+
+        .badge-success {
+            background: var(--success-bg);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-size: 0.75rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .badge-failure {
+            background: var(--danger-bg);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            font-size: 0.75rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .agent-subtask {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .consensus-content {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1.5rem;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            overflow-x: auto;
+        }
+
+        .consensus-content h1, .consensus-content h2, .consensus-content h3 {
+            color: #f8fafc;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .consensus-content h1 { font-size: 1.4rem; }
+        .consensus-content h2 { font-size: 1.2rem; }
+        .consensus-content h3 { font-size: 1.05rem; }
+
+        .consensus-content p {
+            margin-bottom: 1rem;
+        }
+
+        .consensus-content ul, .consensus-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .consensus-content code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .analytics-footer {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-analytics {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+            text-decoration: none;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-analytics:hover {
+            background: rgba(99, 102, 241, 0.25);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-badge">
+                <span class="pulse-dot"></span>
+                Multi-Agent Orchestrator Platform
+            </div>
+            <h1>AI Agent Marketplace</h1>
+            <p class="subtitle">Submit complex domain requests for multi-agent team formation & consensus synthesis</p>
+        </header>
+
+        <div class="card">
+            <form id="analyze-form">
+                <div class="form-group">
+                    <label for="request-input">Analysis Request</label>
+                    <textarea 
+                        id="request-input" 
+                        placeholder="e.g. Analyze this company's acquisition opportunity."
+                        required
+                    >Analyze this company's acquisition opportunity.</textarea>
+                </div>
+                <button type="submit" id="btn-submit" class="btn-submit">
+                    <span id="btn-text">Submit Request</span>
+                </button>
+            </form>
+        </div>
+
+        <div id="error-banner" class="error-banner"></div>
+
+        <div id="results-container">
+            <div class="card">
+                <div class="section-header">
+                    <span class="section-title">Formed Agent Team</span>
+                    <span id="status-pill" class="status-pill">Completed</span>
+                </div>
+                <div id="team-grid" class="team-grid"></div>
+
+                <div class="section-header" style="margin-top: 1rem;">
+                    <span class="section-title">Consensus Output</span>
+                </div>
+                <div id="consensus-output" class="consensus-content"></div>
+
+                <div class="analytics-footer">
+                    <a id="analytics-link" href="#" target="_blank" class="btn-analytics">
+                        View Interactive Task Analytics &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('analyze-form');
+        const input = document.getElementById('request-input');
+        const submitBtn = document.getElementById('btn-submit');
+        const btnText = document.getElementById('btn-text');
+        const errorBanner = document.getElementById('error-banner');
+        const resultsContainer = document.getElementById('results-container');
+        const teamGrid = document.getElementById('team-grid');
+        const consensusOutput = document.getElementById('consensus-output');
+        const statusPill = document.getElementById('status-pill');
+        const analyticsLink = document.getElementById('analytics-link');
+
+        const API_BASE = (window.location.protocol.startsWith('http') && window.location.port === '8000') 
+            ? '' 
+            : (window.location.protocol.startsWith('http') && window.location.hostname)
+                ? `${window.location.protocol}//${window.location.hostname}:8000`
+                : 'http://127.0.0.1:8000';
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const requestText = input.value.trim();
+            if (!requestText) return;
+
+            // Reset UI state
+            errorBanner.style.display = 'none';
+            resultsContainer.style.display = 'none';
+            submitBtn.disabled = true;
+            btnText.innerHTML = '<span class="spinner"></span> Running... this can take up to a minute';
+
+            try {
+                const response = await fetch(`${API_BASE}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ request_text: requestText }),
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.detail || `Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                renderResults(data);
+            } catch (err) {
+                showError(err.message || 'An unexpected error occurred while processing the request.');
+            } finally {
+                submitBtn.disabled = false;
+                btnText.textContent = 'Submit Request';
+            }
+        });
+
+        function showError(msg) {
+            errorBanner.textContent = msg;
+            errorBanner.style.display = 'block';
+        }
+
+        function renderResults(data) {
+            // Render Status Pill
+            const isSuccess = data.status === 'completed';
+            statusPill.textContent = data.status || 'completed';
+            statusPill.className = `status-pill ${isSuccess ? 'status-completed' : 'status-failed'}`;
+
+            // Render Team Cards
+            teamGrid.innerHTML = '';
+            if (Array.isArray(data.team)) {
+                data.team.forEach(member => {
+                    const card = document.createElement('div');
+                    card.className = 'team-card';
+
+                    const successBadge = member.success 
+                        ? '<span class="badge-success">Success</span>' 
+                        : '<span class="badge-failure">Failed</span>';
+
+                    card.innerHTML = `
+                        <div class="agent-info">
+                            <span class="agent-name">${escapeHtml(member.agent_name || 'Agent')}</span>
+                            ${successBadge}
+                        </div>
+                        <div class="agent-subtask">${escapeHtml(member.subtask || 'Subtask assigned')}</div>
+                    `;
+                    teamGrid.appendChild(card);
+                });
+            }
+
+            // Render Consensus Output (Markdown if marked.js available, else formatted text)
+            const rawOutput = data.consensus_output || 'No consensus output generated.';
+            if (window.marked && typeof window.marked.parse === 'function') {
+                consensusOutput.innerHTML = window.marked.parse(rawOutput);
+            } else {
+                consensusOutput.style.whiteSpace = 'pre-wrap';
+                consensusOutput.textContent = rawOutput;
+            }
+
+            // Render Analytics URL Link
+            if (data.analytics_url) {
+                analyticsLink.href = `${API_BASE}${data.analytics_url}`;
+                analyticsLink.style.display = 'inline-flex';
+            } else {
+                analyticsLink.style.display = 'none';
+            }
+
+            resultsContainer.style.display = 'block';
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>

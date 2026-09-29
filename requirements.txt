@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+asyncpg
+redis
+pydantic
+langgraph
+langchain-core
+groq
+networkx
+plotly
+numpy
+python-dotenv
+httpx
